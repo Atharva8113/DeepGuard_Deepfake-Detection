@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepGuard - AI-Powered Deepfake Detection</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* "Result:" label style */
+        #detectionResults h3 {
+            color: #1565c0; 
+            font-weight: bold;
+        }
+
+        /* Prediction colors */
+        .result-real {
+            color: #2e7d32;
+        }
+        .result-fake {
+            color: #b71c1c;
+        }
+
+         .processing-text {
+        color: #1565c0; /* Orange color for processing */
+        }
+
+       
+
+        /* Fade in animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Prediction text colors */
+        .result-real {
+            color: #2e7d32 !important; /* Dark green */
+        }
+
+        .result-fake {
+            color: #b71c1c !important; /* Dark red */
+        }
+
+        /* Fade-in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .progress-bar {
+            height: 24px;
+            border-radius: 12px;
+            background: #ddd;
+            text-align: center;
+            color: white;
+            line-height: 24px;
+            font-weight: bold;
+            transition: width 0.1s linear;
+        }
+
+        .bar-real {
+            background: linear-gradient(90deg, #4caf50, #2e7d32);
+        }
+
+        .bar-fake {
+            background: linear-gradient(90deg, #f44336, #b71c1c);
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Confidence Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 18px;
+            text-align: center;
+            color: white;
+            line-height: 18px;
+            font-size: 12px;
+            transition: width 0.4s ease;
+        }
+        .bar-real {
+            background-color: #4caf50;
+        }
+        .bar-fake {
+            background-color: #f44336;
+        }
+        /* Side-by-side preview + results */
+        .detect-flex {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .preview-box, .results-box {
+            flex: 1 1 300px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>DeepGuard</h1>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" data-tab="home">Home</button>
+                    <button class="nav-btn" data-tab="detect">Detect</button>
+                    <button class="nav-btn" data-tab="about">About</button>
+                    <button class="nav-btn" data-tab="technology">Technology</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Home -->
+        <section id="home-tab" class="tab-content active">
+            <div class="hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <h2>Advanced Deepfake Detection</h2>
+                        <p>Detect manipulated images using DL models with high accuracy.</p>
+                        <button class="btn btn--primary btn--lg" onclick="switchTab('detect')">Start Detection</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detect -->
+        <section id="detect-tab" class="tab-content">
+            <div class="container">
+                <div class="detection-panel">
+                    <h2>Upload Media for Analysis</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                        <div class="upload-content" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-text">
+                                <strong>Drop files here or click to browse</strong>
+                                <p>Supports: JPG, PNG, JPEG, WebP</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="model-selector" style="margin-top:20px;">
+                        <label for="modelSelect">Detection Model:</label>
+                        <select id="modelSelect" class="form-control">
+                            <option value="efficientnet">EfficientNet </option>
+                            <option value="xception_c23">Xception overtrain with fake</option>
+                            <option value="vit_deepfake">ViT Deepfake Detector </option>
+                            <option value="xception_c40">Xception overtrain with real </option>
+                            <option value="resnet">ResNet </option>
+                        </select>
+                    </div>
+                    <button class="btn btn--primary" id="detectBtn" style="margin-top:15px;">Analyze Media</button>
+
+                    <div class="detect-flex hidden" id="detectionResults">
+                        <!-- Preview -->
+                        <div class="preview-box" style="text-align:center;">
+                            <img id="imagePreview" src="" alt="Preview" style="display:none; max-width: 100%; border-radius: 8px; border: 1px solid #ccc;" />
+                        </div>
+                        <!-- Results -->
+                        <div class="results-box">
+                            <h3>Result:</h3>
+                            <p id="resultText">No analysis yet.</p>
+                            <div class="progress-container">
+                                <div id="confidenceBar" class="progress-bar">0%</div>
+                            </div>
+                            <p id="probDetails" style="font-size: 0.9em; color: #888;"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section id="about-tab" class="tab-content">
+            <div class="container">
+                <h2>About DeepGuard</h2>
+                <p>DeepGuard is an project aimed at increasing awareness about deepfakes. It provides an interactive way to upload media and test detection models.</p>
+            </div>
+        </section>
+
+        <!-- Technology -->
+        <section id="technology-tab" class="tab-content">
+            <div class="container">
+                <h2>Our Technology</h2>
+        <ul>
+            <li><strong>EfficientNet-B4:</strong> Lightweight yet powerful CNN.</li>
+            <li><strong>Xception:</strong> Used to demonstarte what happens when data is overfitted.</li>
+            <li><strong>Vision Transformers (ViT):</strong> Achieves state-of-the-art results.</li>
+            <li><strong>ResNet-50:</strong> Classic CNN baseline.</li>
+        </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p><strong>DeepGuard</strong> - Educational deepfake detection demonstration.</p>
+        </div>
+    </footer>
+</div>
+
+<script src="app.js"></script>
+<script>
+    // Tab switching
+    function switchTab(tabName) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelector(`.nav-btn[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(tabName + '-tab').classList.add('active');
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab(btn.dataset.tab);
+        });
+    });
+</script>
+</body>
+</html>

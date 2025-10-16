@@ -1,0 +1,23 @@
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+
+# VSCode settings
+.vscode/
+
+# Environment folders
+venv/
+env/
+
+# Node.js
+node_modules/
+
+# Model weights
+*.pth
+*.onnx
+*.h5
+*.pkl
+
+# OS files
+.DS_Store
+Thumbs.db
