@@ -12,8 +12,13 @@ This repository combines both components of the Deepfake Detection Project:
 - Scripts for dataset preparation, training, and ONNX export
 
 ##  How to Run
-### Web App
+### Web 
 ```bash
 cd deepfake-detector-web
 pip install -r requirements.txt
 python server.py
+
+### Model
+cd deepfake-detector-modeltraining
+pip install -r requirements.txt
+python train.py
